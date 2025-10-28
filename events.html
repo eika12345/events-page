@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upcoming Events</title>
+  <style>
+    @font-face {
+      font-family: NeueMontreal-Medium;
+      src: url(NeueMontreal-Medium.otf);
+    }
+
+    :root {
+      --bg: #e9e7e7;
+      --card-bg: #3a3535;
+      --head-text: #3a3535;
+      --text: #D1CCCC;
+      --accent: #D1CCCC;
+      --muted: #D1CCCC;
+      --radius: 14px;
+      --max-width: 700px;
+    }
+
+    body {
+      font-family: NeueMontreal-Medium;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 80px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: var(--head-text);
+      letter-spacing: -0.5px;
+    }
+
+    select {
+      font-size: 1rem;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 2rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(0,0,0,0.2);
+      background: white;
+      cursor: pointer;
+    }
+
+    #events {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: var(--max-width);
+    }
+
+    .event {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 1.8rem 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.3s ease;
+      opacity: 0;
+      animation: fadeIn 0.6s ease forwards;
+      transform: translateY(10px);
+    }
+
+    .event:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 8px 20px rgba(74,144,226,0.25);
+    }
+
+    .event h3 {
+      margin: 0 0 0.4rem 0;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .event small {
+      color: var(--muted);
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .event p {
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    select#sort-select {
+  font-family: NeueMontreal-Medium;
+  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background-color: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+select#sort-select:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 8px rgba(74,144,226,0.25);
+}
+
+select#sort-select option {
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+    @keyframes fadeIn {
+      from { transform: translateY(15px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 50px 15px; }
+      h1 { font-size: 2rem; margin-bottom: 1rem; }
+      .event { padding: 1.5rem; }
+    }
+   #logo {
+  display: block;
+  max-width: 150px; /* adjust as needed */
+  margin: 0 auto 2rem auto; /* center horizontally, add spacing below */
+}
+  </style>
+</head>
+<body>
+
+   <img src="logo black.png" alt="My Logo" id="logo">
+
+  <h1>Upcoming Events</h1>
+
+  <select id="sort-select">
+    <option value="closest">Upcoming Events</option>
+    <option value="furthest">Future Events</option>
+  </select>
+
+  <div id="events"></div>
+
+  <script>
+    const sheetUrl = "https://opensheet.elk.sh/1w7PvPNXnVNYsF_5RummQ8duwCA81QE2s7jGMl_W5mMM/Sheet1";
+
+    let eventsData = [];
+
+    function parseDate(dateStr) {
+      const [day, month, year] = dateStr.split('/');
+      return new Date(`${year}-${month}-${day}`);
+    }
+
+    function renderEvents(sortOrder = 'closest') {
+      const container = document.getElementById("events");
+      container.innerHTML = "";
+
+      // Sort events based on dropdown selection
+      const sortedEvents = [...eventsData].sort((a, b) => {
+        const dateA = parseDate(a.Date);
+        const dateB = parseDate(b.Date);
+        return sortOrder === 'closest' ? dateA - dateB : dateB - dateA;
+      });
+
+      sortedEvents.forEach(event => {
+        const div = document.createElement("div");
+        div.className = "event";
+        div.innerHTML = `
+          <h3>${event.Title}</h3>
+          <small>${event.Date}</small>
+          <p>${event.Description}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    fetch(sheetUrl)
+      .then(res => res.json())
+      .then(data => {
+        eventsData = data;
+        renderEvents(); // Default render closest first
+      })
+      .catch(err => {
+        document.getElementById("events").innerHTML = "<p>Failed to load events.</p>";
+        console.error(err);
+      });
+
+    // Dropdown change
+    document.getElementById('sort-select').addEventListener('change', (e) => {
+      renderEvents(e.target.value);
+    });
+  </script>
+</body>
+</html>
